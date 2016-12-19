@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+var utcFuture time.Time
+
+func init() {
+	utcFuture = time.Now().UTC().AddDate(1, 0, 0)
+}
+
 // State definition
 type State struct {
 	currentFailureCount  int
@@ -62,7 +68,7 @@ func (s *State) DecreaseExecutions() {
 }
 
 // GetStatus returns the status of the circuit
-func (s *State) GetStatus(sett Setting) Status {
+func (s *State) GetStatus(sett *Setting) Status {
 	s.m.Lock()
 	defer s.m.Unlock()
 

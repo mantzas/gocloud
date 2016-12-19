@@ -107,7 +107,7 @@ func TestState_GetStatus(t *testing.T) {
 	stateClosedRetrySuccess.IncrementRetrySuccessCount()
 
 	type args struct {
-		sett Setting
+		sett *Setting
 	}
 	tests := []struct {
 		name string
@@ -115,11 +115,11 @@ func TestState_GetStatus(t *testing.T) {
 		args args
 		want Status
 	}{
-		{"Closed", NewState(), args{sett: setting}, Closed},
-		{"Open", stateClosed, args{sett: setting}, Open},
-		{"HalfOpen", stateHalf, args{sett: setting}, HalfOpen},
-		{"Open Max Retry", stateOpenMaxRetry, args{sett: setting}, Open},
-		{"Closes after retry success", stateClosedRetrySuccess, args{sett: setting}, Closed},
+		{"Closed", NewState(), args{sett: &setting}, Closed},
+		{"Open", stateClosed, args{sett: &setting}, Open},
+		{"HalfOpen", stateHalf, args{sett: &setting}, HalfOpen},
+		{"Open Max Retry", stateOpenMaxRetry, args{sett: &setting}, Open},
+		{"Closes after retry success", stateClosedRetrySuccess, args{sett: &setting}, Closed},
 	}
 	for _, tt := range tests {
 		if got := tt.s.GetStatus(tt.args.sett); !reflect.DeepEqual(got, tt.want) {
@@ -139,6 +139,7 @@ func TestNewState(t *testing.T) {
 		if got := NewState(); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("%q. NewState() = %v, want %v", tt.name, got, tt.want)
 		}
+
 	}
 }
 
@@ -148,6 +149,6 @@ func BenchmarkState_GetStatus(b *testing.B) {
 	state := NewState()
 
 	for i := 0; i < b.N; i++ {
-		state.GetStatus(setting)
+		state.GetStatus(&setting)
 	}
 }
