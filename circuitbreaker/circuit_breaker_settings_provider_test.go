@@ -1,86 +1,70 @@
 package circuitbreaker
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestNewLocalSettingsProvider(t *testing.T) {
-	tests := []struct {
-		name string
-		want *LocalSettingsProvider
-	}{
-		{"Constructor", NewLocalSettingsProvider()},
-	}
-	for _, tt := range tests {
-		if got := NewLocalSettingsProvider(); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. NewLocalSettingsProvider() = %v, want %v", tt.name, got, tt.want)
-		}
-	}
+func TestLocalSettingsProvider_New(t *testing.T) {
+
+	require := require.New(t)
+
+	p := NewLocalSettingsProvider()
+
+	require.NotNil(p)
 }
 
 func TestLocalSettingsProvider_Get(t *testing.T) {
 
+	require := require.New(t)
+
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "123"})
 
-	type args struct {
-		key string
-	}
 	tests := []struct {
 		name    string
-		lsp     *LocalSettingsProvider
-		args    args
-		want    *Setting
+		key     string
 		wantErr bool
 	}{
-		{"GetKey Success", pr, args{"123"}, &Setting{Key: "123"}, false},
-		{"GetKey Failure", pr, args{"234"}, nil, true},
+		{"Success", "123", false},
+		{"Failure", "456", true},
 	}
+
 	for _, tt := range tests {
-		got, err := tt.lsp.Get(tt.args.key)
-		if (err != nil) != tt.wantErr {
-			t.Errorf("%q. LocalSettingsProvider.Get() error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			continue
-		}
-		if !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. LocalSettingsProvider.Get() = %v, want %v", tt.name, got, tt.want)
+
+		sett, err := pr.Get(tt.key)
+
+		if tt.wantErr {
+			require.NotNil(err, "should not be nil")
+			require.Nil(sett, "should be nil but was %v", sett)
+		} else {
+			require.Nil(err, "should be nil but was %v", err)
+			require.NotNil(sett, "should not be nil")
 		}
 	}
 }
 
 func TestLocalSettingsProvider_GetKeys(t *testing.T) {
 
+	require := require.New(t)
+
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "123"})
 	pr.Save(Setting{Key: "456"})
 
-	tests := []struct {
-		name string
-		lsp  *LocalSettingsProvider
-		want []string
-	}{
-		{"GetKeys", pr, []string{"123", "456"}},
-	}
-	for _, tt := range tests {
-		if got := tt.lsp.GetKeys(); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. LocalSettingsProvider.GetKeys() = %v, want %v", tt.name, got, tt.want)
-		}
-	}
+	keys := pr.GetKeys()
+
+	require.Contains(keys, "123")
+	require.Contains(keys, "456")
 }
 
 func TestLocalSettingsProvider_Save(t *testing.T) {
-	type args struct {
-		sett Setting
-	}
-	tests := []struct {
-		name string
-		lsp  *LocalSettingsProvider
-		args args
-	}{
-		{"Save", NewLocalSettingsProvider(), args{Setting{}}},
-	}
-	for _, tt := range tests {
-		tt.lsp.Save(tt.args.sett)
-	}
+
+	require := require.New(t)
+
+	p := NewLocalSettingsProvider()
+	p.Save(Setting{Key: "123"})
+
+	require.NotNil(p.store["123"])
 }

@@ -8,7 +8,7 @@ import (
 var utcFuture time.Time
 
 func init() {
-	utcFuture = time.Now().UTC().AddDate(1, 0, 0)
+	utcFuture = time.Date(9999, 12, 31, 23, 59, 59, 999999, time.UTC)
 }
 
 // State definition

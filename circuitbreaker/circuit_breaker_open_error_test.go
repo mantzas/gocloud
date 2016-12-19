@@ -1,39 +1,25 @@
 package circuitbreaker
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCircuitOpenError_Error(t *testing.T) {
-	tests := []struct {
-		name string
-		e    CircuitOpenError
-		want string
-	}{
-		{"Error", NewCircuitOpenError("Test"), "Circuit is open for [Test]"},
-	}
-	for _, tt := range tests {
-		if got := tt.e.Error(); got != tt.want {
-			t.Errorf("%q. CircuitOpenError.Error() = %v, want %v", tt.name, got, tt.want)
-		}
-	}
+
+	require := require.New(t)
+
+	err := NewCircuitOpenError("Test")
+
+	require.Equal("Circuit is open for [Test]", err.Error())
 }
 
-func TestNewCircuitOpenError(t *testing.T) {
-	type args struct {
-		key string
-	}
-	tests := []struct {
-		name string
-		args args
-		want CircuitOpenError
-	}{
-		{"Constructor", args{"Key"}, NewCircuitOpenError("Key")},
-	}
-	for _, tt := range tests {
-		if got := NewCircuitOpenError(tt.args.key); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("%q. NewCircuitOpenError() = %v, want %v", tt.name, got, tt.want)
-		}
-	}
+func TestNewCircuitOpenError_New(t *testing.T) {
+
+	require := require.New(t)
+
+	err := NewCircuitOpenError("Test")
+
+	require.Equal("Test", err.key)
 }
