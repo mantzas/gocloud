@@ -5,7 +5,8 @@ go:
 before_script:
     - go get golang.org/x/tools/cmd/cover
     - go get github.com/mattn/goveralls
-script: go test -race -v -covermode=atomic -coverprofile=coverage.txt .
+script: 
+    - echo 'mode: atomic' > coverage.txt && go list ./... | xargs -n1 -I{} sh -c 'go test -covermode=atomic -coverprofile=coverage.tmp {} && tail -n +2 coverage.tmp >> coverage.txt' && rm coverage.tmp
 after_success:    
     - bash <(curl -s https://codecov.io/bash)
     - $HOME/gopath/bin/goveralls -covermode=atomic -coverprofile=coverage.txt -service=travis-ci
