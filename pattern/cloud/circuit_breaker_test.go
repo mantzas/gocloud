@@ -1,4 +1,4 @@
-package circuitbreaker
+package cloud
 
 import (
 	"errors"
@@ -99,6 +99,15 @@ func TestExecute_SuccessAfterFailed(t *testing.T) {
 	_, err = cb.Execute("test", testSuccessAction)
 
 	require.Nil(err)
+}
+
+func BenchmarkCircuitBreaker_Execute(b *testing.B) {
+
+	c := NewCircuitBreaker(NewLocalSettingsProvider())
+
+	for i := 0; i < b.N; i++ {
+		c.Execute("Test", testSuccessAction)
+	}
 }
 
 func testSuccessAction() (interface{}, error) {

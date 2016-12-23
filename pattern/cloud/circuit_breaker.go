@@ -1,4 +1,4 @@
-package circuitbreaker
+package cloud
 
 import "fmt"
 import "github.com/pkg/errors"

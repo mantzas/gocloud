@@ -24,3 +24,7 @@ _testmain.go
 *.prof
 
 coverage.txt
+.idea/workspace.xml
+.idea/dictionaries/smant.xml
+.idea/libraries/GOPATH__gocloud_.xml
+.idea/libraries/Go_SDK.xml
