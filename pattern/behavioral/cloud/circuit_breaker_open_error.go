@@ -9,6 +9,7 @@ type CircuitOpenError struct {
 	key string
 }
 
+// Error returns the error text
 func (e CircuitOpenError) Error() string {
 	return fmt.Sprintf("Circuit is open for [%s]", e.key)
 }

@@ -1,8 +1,9 @@
 package creational
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewObjectPool(t *testing.T) {
@@ -51,12 +52,12 @@ type testFunc struct {
 }
 
 func (tf *testFunc) testObjectFactory() interface{} {
-	tf.factoryCalled += 1
+	tf.factoryCalled++
 	return testObject{name: "test"}
 }
 
 func (tf *testFunc) testObjectSanitizer(o interface{}) interface{} {
-	tf.sanitizerCalled += 1
+	tf.sanitizerCalled++
 	t := o.(testObject)
 	t.name = ""
 	return o
