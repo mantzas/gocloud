@@ -1,7 +1,10 @@
 package cloud
 
-import "fmt"
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 // Status of the circuit breaker
 type Status int
