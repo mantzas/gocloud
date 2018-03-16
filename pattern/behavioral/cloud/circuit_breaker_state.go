@@ -3,6 +3,8 @@ package cloud
 import (
 	"sync"
 	"time"
+
+	"github.com/mantzas/gocloud/metrics"
 )
 
 var utcFuture time.Time
@@ -17,12 +19,19 @@ type State struct {
 	retrySuccessCount    int
 	currentExecutions    int
 	lastFailureTimestamp time.Time
+	mtr                  metrics.Metric
+	keyTag               metrics.Tag
+	failureTag           metrics.Tag
+	totalTag             metrics.Tag
 	m                    *sync.Mutex
 }
 
 // NewState creates a new state
-func NewState() *State {
-	return &State{0, 0, 0, utcFuture, &sync.Mutex{}}
+func NewState(m metrics.Metric, key string) *State {
+	k := metrics.NewTag("key", key)
+	f := metrics.NewTag("status", "failure")
+	t := metrics.NewTag("status", "executions")
+	return &State{0, 0, 0, utcFuture, m, k, f, t, &sync.Mutex{}}
 }
 
 // Reset the state
@@ -45,6 +54,7 @@ func (s *State) IncreaseFailure() {
 	defer s.m.Unlock()
 
 	s.currentFailureCount++
+	s.mtr.IncreaseCounter(1, s.keyTag, s.failureTag)
 	s.lastFailureTimestamp = time.Now().UTC()
 }
 
@@ -62,6 +72,7 @@ func (s *State) IncreaseExecutions() {
 	defer s.m.Unlock()
 
 	s.currentExecutions++
+	s.mtr.IncreaseCounter(1, s.keyTag, s.totalTag)
 }
 
 // DecreaseExecutions decreases the current execution count
