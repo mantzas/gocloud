@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestState_Reset(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 	state.IncreaseFailure()
@@ -18,47 +18,47 @@ func TestState_Reset(t *testing.T) {
 
 	state.Reset()
 
-	require.Equal(0, state.currentFailureCount)
-	require.Equal(0, state.retrySuccessCount)
+	assert.Equal(0, state.currentFailureCount)
+	assert.Equal(0, state.retrySuccessCount)
 }
 
 func TestState_IncreaseFailure(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 	state.IncreaseFailure()
 
-	require.Equal(1, state.currentFailureCount)
+	assert.Equal(1, state.currentFailureCount)
 }
 
 func TestState_IncrementRetrySuccessCount(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 	state.IncrementRetrySuccessCount()
 
-	require.Equal(1, state.retrySuccessCount)
+	assert.Equal(1, state.retrySuccessCount)
 }
 
 func TestState_IncreaseExecutions(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 	state.IncreaseExecutions()
 
-	require.Equal(1, state.currentExecutions)
+	assert.Equal(1, state.currentExecutions)
 }
 
 func TestState_DecreaseExecutions(t *testing.T) {
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 	state.DecreaseExecutions()
 
-	require.Equal(-1, state.currentExecutions)
+	assert.Equal(-1, state.currentExecutions)
 }
 
 func TestState_GetStatus(t *testing.T) {
@@ -102,14 +102,14 @@ func TestState_GetStatus(t *testing.T) {
 
 func TestNewState(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	state := NewState()
 
-	require.Equal(0, state.currentExecutions)
-	require.Equal(0, state.currentFailureCount)
-	require.Equal(0, state.retrySuccessCount)
-	require.Equal(time.Date(9999, 12, 31, 23, 59, 59, 999999, time.UTC), state.lastFailureTimestamp)
+	assert.Equal(0, state.currentExecutions)
+	assert.Equal(0, state.currentFailureCount)
+	assert.Equal(0, state.retrySuccessCount)
+	assert.Equal(time.Date(9999, 12, 31, 23, 59, 59, 999999, time.UTC), state.lastFailureTimestamp)
 }
 
 func BenchmarkState_GetStatus(b *testing.B) {

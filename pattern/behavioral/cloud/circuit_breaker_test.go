@@ -5,34 +5,34 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewCircuitBreaker(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	c := NewCircuitBreaker(NewLocalSettingsProvider())
 
-	require.NotNil(c)
+	assert.NotNil(c)
 }
 
 func TestExecute_MissingKey(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
 	_, err := NewCircuitBreaker(pr).Execute("test1", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 
 }
 
 func TestExecute_MissingState(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
@@ -43,25 +43,25 @@ func TestExecute_MissingState(t *testing.T) {
 
 	_, err := cb.Execute("test", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_Closed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
 	res, err := NewCircuitBreaker(pr).Execute("test", testSuccessAction)
 
-	require.Nil(err)
-	require.Equal("test", res)
+	assert.Nil(err)
+	assert.Equal("test", res)
 }
 
 func TestExecute_Open(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
@@ -71,24 +71,24 @@ func TestExecute_Open(t *testing.T) {
 
 	_, err := cb.Execute("test", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_Failed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
 	_, err := NewCircuitBreaker(pr).Execute("test", testFailureAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_SuccessAfterFailed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 1 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
@@ -98,7 +98,7 @@ func TestExecute_SuccessAfterFailed(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	_, err = cb.Execute("test", testSuccessAction)
 
-	require.Nil(err)
+	assert.Nil(err)
 }
 
 func BenchmarkCircuitBreaker_Execute(b *testing.B) {

@@ -20,6 +20,11 @@ type State struct {
 	m                    *sync.Mutex
 }
 
+// NewState creates a new state
+func NewState() *State {
+	return &State{0, 0, 0, utcFuture, &sync.Mutex{}}
+}
+
 // Reset the state
 func (s *State) Reset() {
 	s.m.Lock()
@@ -94,9 +99,4 @@ func (s *State) GetStatus(sett *Setting) Status {
 	}
 
 	return Open
-}
-
-// NewState creates a new state
-func NewState() *State {
-	return &State{0, 0, 0, utcFuture, &sync.Mutex{}}
 }

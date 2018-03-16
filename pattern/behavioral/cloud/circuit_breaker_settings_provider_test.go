@@ -3,21 +3,21 @@ package cloud
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLocalSettingsProvider_New(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	p := NewLocalSettingsProvider()
 
-	require.NotNil(p)
+	assert.NotNil(p)
 }
 
 func TestLocalSettingsProvider_Get(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "123"})
@@ -36,18 +36,18 @@ func TestLocalSettingsProvider_Get(t *testing.T) {
 		sett, err := pr.Get(tt.key)
 
 		if tt.wantErr {
-			require.NotNil(err, "should not be nil")
-			require.Nil(sett, "should be nil but was %v", sett)
+			assert.NotNil(err, "should not be nil")
+			assert.Nil(sett, "should be nil but was %v", sett)
 		} else {
-			require.Nil(err, "should be nil but was %v", err)
-			require.NotNil(sett, "should not be nil")
+			assert.Nil(err, "should be nil but was %v", err)
+			assert.NotNil(sett, "should not be nil")
 		}
 	}
 }
 
 func TestLocalSettingsProvider_GetKeys(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "123"})
@@ -55,16 +55,16 @@ func TestLocalSettingsProvider_GetKeys(t *testing.T) {
 
 	keys := pr.GetKeys()
 
-	require.Contains(keys, "123")
-	require.Contains(keys, "456")
+	assert.Contains(keys, "123")
+	assert.Contains(keys, "456")
 }
 
 func TestLocalSettingsProvider_Save(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	p := NewLocalSettingsProvider()
 	p.Save(Setting{Key: "123"})
 
-	require.NotNil(p.store["123"])
+	assert.NotNil(p.store["123"])
 }
