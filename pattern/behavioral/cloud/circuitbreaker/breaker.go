@@ -1,8 +1,9 @@
-package cloud
+package circuitbreaker
 
 import (
 	"fmt"
 
+	"github.com/mantzas/gocloud/metrics"
 	"github.com/pkg/errors"
 )
 
@@ -28,12 +29,12 @@ type CircuitBreaker struct {
 }
 
 // NewCircuitBreaker constructor
-func NewCircuitBreaker(sr SettingsRetriever) *CircuitBreaker {
+func NewCircuitBreaker(sr SettingsRetriever, m metrics.Counter) *CircuitBreaker {
 
 	states := make(map[string]*State, 0)
 
 	for _, key := range sr.GetKeys() {
-		states[key] = NewState()
+		states[key] = NewState(m, key)
 	}
 
 	return &CircuitBreaker{sr, states}

@@ -1,8 +1,10 @@
-package cloud
+package circuitbreaker
 
 import (
 	"sync"
 	"time"
+
+	"github.com/mantzas/gocloud/metrics"
 )
 
 var utcFuture time.Time
@@ -17,7 +19,25 @@ type State struct {
 	retrySuccessCount    int
 	currentExecutions    int
 	lastFailureTimestamp time.Time
+	counter              metrics.Counter
+	keyTag               metrics.Tag
+	failureTag           metrics.Tag
+	totalTag             metrics.Tag
 	m                    *sync.Mutex
+}
+
+// NewState creates a new state. If no metric counter is provided
+// the default null counter is used.
+func NewState(c metrics.Counter, key string) *State {
+	k := metrics.NewTag("key", key)
+	f := metrics.NewTag("status", "failure")
+	t := metrics.NewTag("status", "executions")
+
+	if c == nil {
+		c = &metrics.NullCounter{}
+	}
+
+	return &State{0, 0, 0, utcFuture, c, k, f, t, &sync.Mutex{}}
 }
 
 // Reset the state
@@ -40,6 +60,7 @@ func (s *State) IncreaseFailure() {
 	defer s.m.Unlock()
 
 	s.currentFailureCount++
+	s.counter.Increase(1, s.keyTag, s.failureTag)
 	s.lastFailureTimestamp = time.Now().UTC()
 }
 
@@ -57,6 +78,7 @@ func (s *State) IncreaseExecutions() {
 	defer s.m.Unlock()
 
 	s.currentExecutions++
+	s.counter.Increase(1, s.keyTag, s.totalTag)
 }
 
 // DecreaseExecutions decreases the current execution count
@@ -94,9 +116,4 @@ func (s *State) GetStatus(sett *Setting) Status {
 	}
 
 	return Open
-}
-
-// NewState creates a new state
-func NewState() *State {
-	return &State{0, 0, 0, utcFuture, &sync.Mutex{}}
 }

@@ -1,45 +1,45 @@
-package creational
+package pool
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewObjectPool(t *testing.T) {
-	req := require.New(t)
+	assert := assert.New(t)
 	tf := testFunc{}
 	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
-	req.NotNil(p)
-	req.Equal(0, tf.factoryCalled)
-	req.Equal(0, tf.sanitizerCalled)
+	assert.NotNil(p)
+	assert.Equal(0, tf.factoryCalled)
+	assert.Equal(0, tf.sanitizerCalled)
 }
 
 func TestObjectPool_Rent(t *testing.T) {
-	req := require.New(t)
+	assert := assert.New(t)
 	tf := testFunc{}
 	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
-	req.NotNil(p)
+	assert.NotNil(p)
 
 	o := p.Rent().(testObject)
-	req.Equal("test", o.name, "Expected 'name' but got %s", o.name)
-	req.Equal(1, tf.factoryCalled)
-	req.Equal(0, tf.sanitizerCalled)
+	assert.Equal("test", o.name, "Expected 'name' but got %s", o.name)
+	assert.Equal(1, tf.factoryCalled)
+	assert.Equal(0, tf.sanitizerCalled)
 }
 
 func TestObjectPool_Return(t *testing.T) {
-	req := require.New(t)
+	assert := assert.New(t)
 	tf := testFunc{}
 	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
-	req.NotNil(p)
+	assert.NotNil(p)
 
 	o := p.Rent().(testObject)
-	req.Equal("test", o.name, "Expected 'name' but got %s", o.name)
+	assert.Equal("test", o.name, "Expected 'name' but got %s", o.name)
 
 	p.Return(o)
 
-	req.Equal(1, tf.factoryCalled)
-	req.Equal(1, tf.sanitizerCalled)
+	assert.Equal(1, tf.factoryCalled)
+	assert.Equal(1, tf.sanitizerCalled)
 }
 
 type testObject struct {

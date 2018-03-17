@@ -1,109 +1,109 @@
-package cloud
+package circuitbreaker
 
 import (
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewCircuitBreaker(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
-	c := NewCircuitBreaker(NewLocalSettingsProvider())
+	c := NewCircuitBreaker(NewLocalSettingsProvider(), &testMetric{})
 
-	require.NotNil(c)
+	assert.NotNil(c)
 }
 
 func TestExecute_MissingKey(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	_, err := NewCircuitBreaker(pr).Execute("test1", testSuccessAction)
+	_, err := NewCircuitBreaker(pr, &testMetric{}).Execute("test1", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 
 }
 
 func TestExecute_MissingState(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	cb := NewCircuitBreaker(pr)
+	cb := NewCircuitBreaker(pr, &testMetric{})
 
 	delete(cb.states, "test")
 
 	_, err := cb.Execute("test", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_Closed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	res, err := NewCircuitBreaker(pr).Execute("test", testSuccessAction)
+	res, err := NewCircuitBreaker(pr, &testMetric{}).Execute("test", testSuccessAction)
 
-	require.Nil(err)
-	require.Equal("test", res)
+	assert.Nil(err)
+	assert.Equal("test", res)
 }
 
 func TestExecute_Open(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	cb := NewCircuitBreaker(pr)
+	cb := NewCircuitBreaker(pr, &testMetric{})
 	cb.states["test"].currentFailureCount = 1
 
 	_, err := cb.Execute("test", testSuccessAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_Failed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 10 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	_, err := NewCircuitBreaker(pr).Execute("test", testFailureAction)
+	_, err := NewCircuitBreaker(pr, &testMetric{}).Execute("test", testFailureAction)
 
-	require.NotNil(err)
+	assert.NotNil(err)
 }
 
 func TestExecute_SuccessAfterFailed(t *testing.T) {
 
-	require := require.New(t)
+	assert := assert.New(t)
 
 	pr := NewLocalSettingsProvider()
 	pr.Save(Setting{Key: "test", FailureThreshold: 1, RetryTimeout: 1 * time.Second, RetrySuccessThreshold: 1, MaxRetryExecutionThreshold: 1})
 
-	cb := NewCircuitBreaker(pr)
+	cb := NewCircuitBreaker(pr, &testMetric{})
 	_, err := cb.Execute("test", testFailureAction)
 	time.Sleep(2 * time.Second)
 	_, err = cb.Execute("test", testSuccessAction)
 
-	require.Nil(err)
+	assert.Nil(err)
 }
 
 func BenchmarkCircuitBreaker_Execute(b *testing.B) {
 
-	c := NewCircuitBreaker(NewLocalSettingsProvider())
+	c := NewCircuitBreaker(NewLocalSettingsProvider(), &testMetric{})
 
 	for i := 0; i < b.N; i++ {
 		c.Execute("Test", testSuccessAction)
