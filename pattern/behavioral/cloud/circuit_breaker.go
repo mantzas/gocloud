@@ -29,7 +29,7 @@ type CircuitBreaker struct {
 }
 
 // NewCircuitBreaker constructor
-func NewCircuitBreaker(sr SettingsRetriever, m metrics.Metric) *CircuitBreaker {
+func NewCircuitBreaker(sr SettingsRetriever, m metrics.Counter) *CircuitBreaker {
 
 	states := make(map[string]*State, 0)
 

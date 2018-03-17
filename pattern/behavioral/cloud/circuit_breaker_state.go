@@ -19,7 +19,7 @@ type State struct {
 	retrySuccessCount    int
 	currentExecutions    int
 	lastFailureTimestamp time.Time
-	mtr                  metrics.Metric
+	counter              metrics.Counter
 	keyTag               metrics.Tag
 	failureTag           metrics.Tag
 	totalTag             metrics.Tag
@@ -27,11 +27,16 @@ type State struct {
 }
 
 // NewState creates a new state
-func NewState(m metrics.Metric, key string) *State {
+func NewState(c metrics.Counter, key string) *State {
 	k := metrics.NewTag("key", key)
 	f := metrics.NewTag("status", "failure")
 	t := metrics.NewTag("status", "executions")
-	return &State{0, 0, 0, utcFuture, m, k, f, t, &sync.Mutex{}}
+
+	if c == nil {
+		c = &metrics.NullCounter{}
+	}
+
+	return &State{0, 0, 0, utcFuture, c, k, f, t, &sync.Mutex{}}
 }
 
 // Reset the state
@@ -54,7 +59,7 @@ func (s *State) IncreaseFailure() {
 	defer s.m.Unlock()
 
 	s.currentFailureCount++
-	s.mtr.IncreaseCounter(1, s.keyTag, s.failureTag)
+	s.counter.Increase(1, s.keyTag, s.failureTag)
 	s.lastFailureTimestamp = time.Now().UTC()
 }
 
@@ -72,7 +77,7 @@ func (s *State) IncreaseExecutions() {
 	defer s.m.Unlock()
 
 	s.currentExecutions++
-	s.mtr.IncreaseCounter(1, s.keyTag, s.totalTag)
+	s.counter.Increase(1, s.keyTag, s.totalTag)
 }
 
 // DecreaseExecutions decreases the current execution count

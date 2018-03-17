@@ -14,7 +14,7 @@ type testMetric struct {
 	key        string
 }
 
-func (tm *testMetric) IncreaseCounter(value int, tags ...metrics.Tag) {
+func (tm *testMetric) Increase(value int, tags ...metrics.Tag) {
 	for _, tag := range tags {
 		switch tag.Key {
 		case "key":
@@ -27,6 +27,12 @@ func (tm *testMetric) IncreaseCounter(value int, tags ...metrics.Tag) {
 			}
 		}
 	}
+}
+
+func TestState_NewWithNilCounter(t *testing.T) {
+	assert := assert.New(t)
+	state := NewState(nil, "key")
+	assert.NotNil(state)
 }
 
 func TestState_Reset(t *testing.T) {
@@ -125,7 +131,7 @@ func TestState_GetStatus(t *testing.T) {
 	for _, tt := range tests {
 
 		assert.Equal(tt.want, tt.s.GetStatus(tt.sett), tt.name)
-		assert.Equal(&tt.wantMetric, tt.s.mtr, tt.name)
+		assert.Equal(&tt.wantMetric, tt.s.counter, tt.name)
 	}
 }
 

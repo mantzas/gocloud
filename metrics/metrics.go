@@ -10,7 +10,15 @@ func NewTag(k, v string) Tag {
 	return Tag{k, v}
 }
 
-// Metric interface
-type Metric interface {
-	IncreaseCounter(value int, tags ...Tag)
+// Counter interface
+type Counter interface {
+	Increase(value int, tags ...Tag)
+}
+
+// NullCounter defines a counter that does nothing
+type NullCounter struct {
+}
+
+// Increase the null counter
+func (nc NullCounter) Increase(value int, tags ...Tag) {
 }
