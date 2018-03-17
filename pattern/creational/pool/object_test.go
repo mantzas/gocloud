@@ -9,7 +9,26 @@ import (
 func TestNewObjectPool(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	assert.NoError(err)
+	assert.NotNil(p)
+	assert.Equal(0, tf.factoryCalled)
+	assert.Equal(0, tf.sanitizerCalled)
+}
+
+func TestNewObjectPoolError(t *testing.T) {
+	assert := assert.New(t)
+	tf := testFunc{}
+	p, err := NewObjectPool(nil, tf.testObjectSanitizer)
+	assert.Error(err)
+	assert.Nil(p)
+}
+
+func TestNewObjectPoolWithNilSanitizer(t *testing.T) {
+	assert := assert.New(t)
+	tf := testFunc{}
+	p, err := NewObjectPool(tf.testObjectFactory, nil)
+	assert.NoError(err)
 	assert.NotNil(p)
 	assert.Equal(0, tf.factoryCalled)
 	assert.Equal(0, tf.sanitizerCalled)
@@ -18,7 +37,8 @@ func TestNewObjectPool(t *testing.T) {
 func TestObjectPool_Rent(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	assert.NoError(err)
 	assert.NotNil(p)
 
 	o := p.Rent().(testObject)
@@ -30,7 +50,8 @@ func TestObjectPool_Rent(t *testing.T) {
 func TestObjectPool_Return(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewObjectPool(tf.testObjectFactory, tf.testObjectSanitizer)
+	assert.NoError(err)
 	assert.NotNil(p)
 
 	o := p.Rent().(testObject)
@@ -40,6 +61,21 @@ func TestObjectPool_Return(t *testing.T) {
 
 	assert.Equal(1, tf.factoryCalled)
 	assert.Equal(1, tf.sanitizerCalled)
+}
+
+func TestObjectPool_ReturnNilSanitizer(t *testing.T) {
+	assert := assert.New(t)
+	tf := testFunc{}
+	p, err := NewObjectPool(tf.testObjectFactory, nil)
+	assert.NoError(err)
+	assert.NotNil(p)
+
+	o := p.Rent().(testObject)
+	assert.Equal("test", o.name, "Expected 'name' but got %s", o.name)
+
+	p.Return(o)
+
+	assert.Equal(1, tf.factoryCalled)
 }
 
 type testObject struct {

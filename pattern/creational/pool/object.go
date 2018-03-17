@@ -1,6 +1,9 @@
 package pool
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 // Pool interface
 type Pool interface {
@@ -21,10 +24,21 @@ type ObjectFactory func() interface{}
 type ObjectSanitizer func(interface{}) interface{}
 
 // NewObjectPool constructor
-func NewObjectPool(f ObjectFactory, s ObjectSanitizer) *ObjectPool {
+func NewObjectPool(f ObjectFactory, s ObjectSanitizer) (*ObjectPool, error) {
+
+	if f == nil {
+		return nil, errors.New("object factory is nil")
+	}
+
+	if s == nil {
+		s = func(in interface{}) interface{} {
+			return in
+		}
+	}
+
 	return &ObjectPool{sync.Pool{
 		New: f,
-	}, s}
+	}, s}, nil
 }
 
 // Rent returns a object from pool
