@@ -11,20 +11,27 @@ type Pool interface {
 	Return(interface{})
 }
 
-// ObjectPool definition
-type ObjectPool struct {
-	pool sync.Pool
-	s    ObjectSanitizer
+// ChannelPool definition
+type ChannelPool struct {
+	size int
+	pool chan interface{}
+	s    Sanitizer
+	f    Factory
+	m    *sync.Mutex
 }
 
-// ObjectFactory function definition
-type ObjectFactory func() interface{}
+// Factory function definition
+type Factory func() interface{}
 
-// ObjectSanitizer function definition
-type ObjectSanitizer func(interface{}) interface{}
+// Sanitizer function definition
+type Sanitizer func(interface{}) interface{}
 
-// NewObjectPool constructor
-func NewObjectPool(f ObjectFactory, s ObjectSanitizer) (*ObjectPool, error) {
+// NewChannelPool constructor
+func NewChannelPool(size int, f Factory, s Sanitizer) (*ChannelPool, error) {
+
+	if size <= 0 {
+		return nil, errors.New("size must be positive")
+	}
 
 	if f == nil {
 		return nil, errors.New("object factory is nil")
@@ -36,17 +43,30 @@ func NewObjectPool(f ObjectFactory, s ObjectSanitizer) (*ObjectPool, error) {
 		}
 	}
 
-	return &ObjectPool{sync.Pool{
-		New: f,
-	}, s}, nil
+	pool := make(chan interface{}, size)
+
+	return &ChannelPool{size, pool, s, f, &sync.Mutex{}}, nil
 }
 
 // Rent returns a object from pool
-func (op *ObjectPool) Rent() interface{} {
-	return op.pool.Get()
+func (op *ChannelPool) Rent() interface{} {
+	op.m.Lock()
+	defer op.m.Unlock()
+
+	if len(op.pool) == 0 {
+		return op.f()
+	}
+
+	return <-op.pool
 }
 
 // Return object to the pool
-func (op *ObjectPool) Return(o interface{}) {
-	op.pool.Put(op.s(o))
+func (op *ChannelPool) Return(o interface{}) {
+	op.m.Lock()
+	defer op.m.Unlock()
+
+	if len(op.pool) == op.size {
+		<-op.pool
+	}
+	op.pool <- op.s(o)
 }
