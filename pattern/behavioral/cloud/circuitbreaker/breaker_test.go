@@ -95,7 +95,7 @@ func TestExecute_SuccessAfterFailed(t *testing.T) {
 
 	cb := NewCircuitBreaker(pr, &testMetric{})
 	_, err := cb.Execute("test", testFailureAction)
-	assert.Nil(err)
+	assert.NotNil(err)
 	time.Sleep(2 * time.Second)
 	_, err = cb.Execute("test", testSuccessAction)
 
