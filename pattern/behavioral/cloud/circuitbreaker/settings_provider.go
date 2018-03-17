@@ -20,7 +20,7 @@ type LocalSettingsProvider struct {
 
 // NewLocalSettingsProvider constructor
 func NewLocalSettingsProvider() *LocalSettingsProvider {
-	return &LocalSettingsProvider{make(map[string]Setting, 0)}
+	return &LocalSettingsProvider{make(map[string]Setting)}
 }
 
 // Get the setting based on the key from the local store

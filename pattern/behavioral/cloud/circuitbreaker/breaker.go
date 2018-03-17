@@ -31,7 +31,7 @@ type CircuitBreaker struct {
 // NewCircuitBreaker constructor
 func NewCircuitBreaker(sr SettingsRetriever, m metrics.Counter) *CircuitBreaker {
 
-	states := make(map[string]*State, 0)
+	states := make(map[string]*State)
 
 	for _, key := range sr.GetKeys() {
 		states[key] = NewState(m, key)
