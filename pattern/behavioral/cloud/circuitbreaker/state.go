@@ -1,4 +1,4 @@
-package cloud
+package circuitbreaker
 
 import (
 	"sync"
@@ -26,7 +26,8 @@ type State struct {
 	m                    *sync.Mutex
 }
 
-// NewState creates a new state
+// NewState creates a new state. If no metric counter is provided
+// the default null counter is used.
 func NewState(c metrics.Counter, key string) *State {
 	k := metrics.NewTag("key", key)
 	f := metrics.NewTag("status", "failure")

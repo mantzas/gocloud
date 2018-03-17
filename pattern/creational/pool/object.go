@@ -1,4 +1,4 @@
-package creational
+package pool
 
 import "sync"
 
