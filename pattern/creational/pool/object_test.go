@@ -3,13 +3,25 @@ package pool
 import (
 	"testing"
 
+	"github.com/mantzas/gocloud/metrics"
 	"github.com/stretchr/testify/assert"
 )
+
+type testGauge struct {
+	size       float64
+	key, value string
+}
+
+func (tc *testGauge) Set(value float64, tags ...metrics.Tag) {
+	tc.size = value
+	tc.key = tags[0].Key
+	tc.value = tags[0].Value
+}
 
 func TestNewObjectPool(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(10, tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewChannelPool(10, tf.testFactory, tf.testSanitizer, nil, "test")
 	assert.NoError(err)
 	assert.NotNil(p)
 	assert.Equal(0, tf.factoryCalled)
@@ -19,7 +31,7 @@ func TestNewObjectPool(t *testing.T) {
 func TestNewObjectPoolZeroSize(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(0, tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewChannelPool(0, tf.testFactory, tf.testSanitizer, nil, "test")
 	assert.Error(err)
 	assert.Nil(p)
 }
@@ -27,7 +39,7 @@ func TestNewObjectPoolZeroSize(t *testing.T) {
 func TestNewObjectPoolNilFactoryError(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(10, nil, tf.testObjectSanitizer)
+	p, err := NewChannelPool(10, nil, tf.testSanitizer, nil, "test")
 	assert.Error(err)
 	assert.Nil(p)
 }
@@ -35,7 +47,7 @@ func TestNewObjectPoolNilFactoryError(t *testing.T) {
 func TestNewObjectPoolWithNilSanitizer(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(10, tf.testObjectFactory, nil)
+	p, err := NewChannelPool(10, tf.testFactory, nil, nil, "test")
 	assert.NoError(err)
 	assert.NotNil(p)
 	assert.Equal(0, tf.factoryCalled)
@@ -45,7 +57,7 @@ func TestNewObjectPoolWithNilSanitizer(t *testing.T) {
 func TestObjectPool_Rent(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(10, tf.testObjectFactory, tf.testObjectSanitizer)
+	p, err := NewChannelPool(10, tf.testFactory, tf.testSanitizer, nil, "test")
 	assert.NoError(err)
 	assert.NotNil(p)
 
@@ -58,7 +70,7 @@ func TestObjectPool_Rent(t *testing.T) {
 func TestObjectPool_ReturnNilSanitizer(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(10, tf.testObjectFactory, nil)
+	p, err := NewChannelPool(10, tf.testFactory, nil, nil, "test")
 	assert.NoError(err)
 	assert.NotNil(p)
 
@@ -73,7 +85,8 @@ func TestObjectPool_ReturnNilSanitizer(t *testing.T) {
 func TestObjectPool_Test(t *testing.T) {
 	assert := assert.New(t)
 	tf := testFunc{}
-	p, err := NewChannelPool(1, tf.testObjectFactory, tf.testObjectSanitizer)
+	tg := testGauge{}
+	p, err := NewChannelPool(1, tf.testFactory, tf.testSanitizer, &tg, "test")
 	assert.NoError(err)
 	assert.NotNil(p)
 
@@ -88,6 +101,10 @@ func TestObjectPool_Test(t *testing.T) {
 
 	assert.Equal(1, tf.factoryCalled)
 	assert.Equal(2, tf.sanitizerCalled)
+
+	assert.Equal(1.0, tg.size)
+	assert.Equal("type", tg.key)
+	assert.Equal("test", tg.value)
 }
 
 var item interface{}
@@ -95,7 +112,7 @@ var item interface{}
 func BenchmarkState_ChannelPool(b *testing.B) {
 
 	tf := testFunc{}
-	p, _ := NewChannelPool(2, tf.testObjectFactory, tf.testObjectSanitizer)
+	p, _ := NewChannelPool(2, tf.testFactory, tf.testSanitizer, nil, "test")
 	p.Return(p.Rent())
 
 	for i := 0; i < b.N; i++ {
@@ -113,12 +130,12 @@ type testFunc struct {
 	sanitizerCalled int
 }
 
-func (tf *testFunc) testObjectFactory() interface{} {
+func (tf *testFunc) testFactory() interface{} {
 	tf.factoryCalled++
 	return testObject{name: "test"}
 }
 
-func (tf *testFunc) testObjectSanitizer(o interface{}) interface{} {
+func (tf *testFunc) testSanitizer(o interface{}) interface{} {
 	tf.sanitizerCalled++
 	t := o.(testObject)
 	t.name = ""
