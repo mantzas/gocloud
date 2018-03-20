@@ -3,5 +3,5 @@ language: go
 go:
   - "1.10.x"
 script:  go test ./... -race -cover -covermode=atomic -coverprofile=coverage.txt
-after_success:    
+after_success:
     - bash <(curl -s https://codecov.io/bash)
